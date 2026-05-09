@@ -1,0 +1,89 @@
+# FTG Energy Chain — Node Configuration (Testnet)
+# This is the CometBFT configuration for the ftg-energy-1 testnet
+
+# General
+proxy_app = "tcp://127.0.0.1:26658"
+moniker = "ftg-genesis-validator"
+db_backend = "goleveldb"
+db_dir = "data"
+log_level = "info"
+log_format = "plain"
+
+# RPC Server
+[rpc]
+laddr = "tcp://0.0.0.0:26657"
+cors_allowed_origins = ["*"]
+cors_allowed_methods = ["HEAD", "GET", "POST"]
+cors_allowed_headers = ["Origin", "Accept", "Content-Type", "X-Requested-With", "X-Server-Time"]
+grpc_laddr = ""
+grpc_max_open_connections = 900
+unsafe = false
+max_open_connections = 900
+max_subscription_clients = 100
+max_subscriptions_per_client = 5
+experimental_subscription_buffer_size = 200
+experimental_websocket_write_buffer_size = 200
+timeout_broadcast_tx_commit = "10s"
+
+# P2P
+[p2p]
+laddr = "tcp://0.0.0.0:26656"
+external_address = ""
+seeds = ""
+persistent_peers = ""
+addr_book_file = "config/addrbook.json"
+addr_book_strict = false
+max_num_inbound_peers = 40
+max_num_outbound_peers = 10
+flush_throttle_timeout = "100ms"
+max_packet_msg_payload_size = 1024
+send_rate = 5120000
+recv_rate = 5120000
+pex = true
+seed_mode = false
+allow_duplicate_ip = true
+
+# Mempool
+[mempool]
+type = "flood"
+recheck = true
+broadcast = true
+size = 5000
+max_txs_bytes = 1073741824
+cache_size = 10000
+keep-invalid-txs-in-cache = false
+max_tx_bytes = 1048576
+
+# State Sync
+[statesync]
+enable = false
+rpc_servers = ""
+trust_height = 0
+trust_hash = ""
+trust_period = "168h0m0s"
+discovery_time = "15s"
+temp_dir = ""
+chunk_request_timeout = "10s"
+chunk_fetchers = "4"
+
+# Consensus
+[consensus]
+wal_file = "data/cs.wal/wal"
+timeout_propose = "3s"
+timeout_propose_delta = "500ms"
+timeout_prevote = "1s"
+timeout_prevote_delta = "500ms"
+timeout_precommit = "1s"
+timeout_precommit_delta = "500ms"
+timeout_commit = "5s"
+double_sign_check_height = 0
+skip_timeout_commit = false
+create_empty_blocks = true
+create_empty_blocks_interval = "0s"
+
+# Instrumentation
+[instrumentation]
+prometheus = true
+prometheus_listen_addr = ":26660"
+max_open_connections = 3
+namespace = "cometbft"

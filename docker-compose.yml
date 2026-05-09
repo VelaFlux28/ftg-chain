@@ -1,0 +1,49 @@
+# FTG Energy Chain — Testnet Docker Compose
+# Deploys a single validator node for the ftg-energy-1 testnet
+
+version: '3.8'
+
+services:
+  ftg-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ftg-validator
+    restart: unless-stopped
+    ports:
+      - "26656:26656"   # P2P
+      - "26657:26657"   # RPC
+      - "1317:1317"     # REST API
+      - "9090:9090"     # gRPC
+      - "9091:9091"     # gRPC Web
+      - "26660:26660"   # Prometheus metrics
+    volumes:
+      - ftg-data:/root/.ftgd
+      - ./genesis/genesis.json:/root/.ftgd/config/genesis.json:ro
+      - ./config/config.toml:/root/.ftgd/config/config.toml:ro
+      - ./config/app.toml:/root/.ftgd/config/app.toml:ro
+    environment:
+      - FTG_CHAIN_ID=ftg-energy-1
+      - FTG_MONIKER=ftg-genesis-validator
+      - FTG_LOG_LEVEL=info
+    networks:
+      - ftg-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+volumes:
+  ftg-data:
+    driver: local
+
+networks:
+  ftg-network:
+    driver: bridge

@@ -1,0 +1,80 @@
+# FTG Energy Chain — Application Configuration (Testnet)
+
+###############################################################################
+###                           Base Configuration                            ###
+###############################################################################
+
+# Minimum gas prices for transactions
+minimum-gas-prices = "0.001uftg"
+
+# Pruning strategy
+pruning = "default"
+pruning-keep-recent = "0"
+pruning-interval = "0"
+
+# Halt height (0 = disabled)
+halt-height = 0
+halt-time = 0
+
+# Min retain blocks (0 = disabled)
+min-retain-blocks = 0
+
+# Inter-block cache
+inter-block-cache = true
+
+# Index events
+index-events = ["tx.hash", "tx.height", "ftg_mint.certificate_id", "ftg_burn.burn_id", "provenance_created.record_id"]
+
+###############################################################################
+###                         Telemetry Configuration                         ###
+###############################################################################
+
+[telemetry]
+service-name = "ftg-energy"
+enabled = true
+enable-hostname = false
+enable-hostname-label = false
+enable-service-label = false
+prometheus-retention-time = 0
+global-labels = [["chain_id", "ftg-energy-1"]]
+
+###############################################################################
+###                           API Configuration                             ###
+###############################################################################
+
+[api]
+enable = true
+swagger = true
+address = "tcp://0.0.0.0:1317"
+max-open-connections = 1000
+rpc-read-timeout = 10
+rpc-write-timeout = 0
+rpc-max-body-bytes = 1000000
+enabled-unsafe-cors = true
+
+###############################################################################
+###                           gRPC Configuration                            ###
+###############################################################################
+
+[grpc]
+enable = true
+address = "0.0.0.0:9090"
+max-recv-msg-size = "10485760"
+max-send-msg-size = "2147483647"
+
+###############################################################################
+###                        gRPC Web Configuration                           ###
+###############################################################################
+
+[grpc-web]
+enable = true
+address = "0.0.0.0:9091"
+enable-unsafe-cors = true
+
+###############################################################################
+###                        State Sync Configuration                         ###
+###############################################################################
+
+[state-sync]
+snapshot-interval = 1000
+snapshot-keep-recent = 2
