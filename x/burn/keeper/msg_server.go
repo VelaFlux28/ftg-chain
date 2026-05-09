@@ -62,12 +62,12 @@ func (m msgServer) MerchantBurn(goCtx context.Context, msg *types.MsgMerchantBur
 		return nil, fmt.Errorf("invalid tokens_purchased: %s", msg.TokensPurchased)
 	}
 
-	energyRevenue, err := sdk.NewDecFromStr(msg.EnergyRevenueUsd)
+	energyRevenue, err := math.LegacyNewDecFromStr(msg.EnergyRevenueUsd)
 	if err != nil {
 		return nil, fmt.Errorf("invalid energy_revenue_usd: %w", err)
 	}
 
-	dexPrice, err := sdk.NewDecFromStr(msg.DexPurchasePrice)
+	dexPrice, err := math.LegacyNewDecFromStr(msg.DexPurchasePrice)
 	if err != nil {
 		return nil, fmt.Errorf("invalid dex_purchase_price: %w", err)
 	}

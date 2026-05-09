@@ -1,0 +1,63 @@
+syntax = "proto3";
+package ftgchain.burn.v1;
+
+option go_package = "github.com/VelaFlux28/ftg-chain/x/burn/types";
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+// Msg defines the burn module's gRPC message service
+service Msg {
+  // BurnTokens allows any token holder to burn their own tokens
+  rpc BurnTokens(MsgBurnTokens) returns (MsgBurnTokensResponse);
+
+  // MerchantBurn executes the Automatic Merchant Protocol burn
+  rpc MerchantBurn(MsgMerchantBurn) returns (MsgMerchantBurnResponse);
+
+  // AddMerchant adds an authorized merchant address (governance only)
+  rpc AddMerchant(MsgAddMerchant) returns (MsgAddMerchantResponse);
+}
+
+// MsgBurnTokens is the request to burn FTG tokens
+message MsgBurnTokens {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string amount = 2 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string source = 3;
+}
+
+message MsgBurnTokensResponse {
+  string burn_id = 1;
+  string amount_burned = 2 [(cosmos_proto.scalar) = "cosmos.Int"];
+}
+
+// MsgMerchantBurn is the Automatic Merchant Protocol burn request
+message MsgMerchantBurn {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string tokens_purchased = 2 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string energy_revenue_usd = 3 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  string dex_purchase_price = 4 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  string vault_id = 5;
+  string grid_operator = 6;
+}
+
+message MsgMerchantBurnResponse {
+  string burn_id = 1;
+  string amount_burned = 2 [(cosmos_proto.scalar) = "cosmos.Int"];
+}
+
+// MsgAddMerchant adds an authorized merchant address
+message MsgAddMerchant {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string merchant_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgAddMerchantResponse {}

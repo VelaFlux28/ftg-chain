@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -69,7 +70,7 @@ type EnergySource struct {
 	GenerationPeriodEnd time.Time `json:"generation_period_end"`
 
 	// MwhQuantity is the total energy in MWh
-	MwhQuantity sdk.Dec `json:"mwh_quantity"`
+	MwhQuantity math.LegacyDec `json:"mwh_quantity"`
 
 	// CertificateSerial is the external certificate serial number
 	CertificateSerial string `json:"certificate_serial"`

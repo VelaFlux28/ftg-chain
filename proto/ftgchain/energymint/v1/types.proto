@@ -1,0 +1,41 @@
+syntax = "proto3";
+package ftgchain.energymint.v1;
+
+option go_package = "github.com/VelaFlux28/ftg-chain/x/energymint/types";
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+// Certificate represents a Renewable Energy Certificate uploaded to the chain
+message Certificate {
+  string certificate_id = 1;
+  string external_id = 2;
+  string source = 3;
+  string mwh_quantity = 4 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  google.protobuf.Timestamp generation_date = 5 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  google.protobuf.Timestamp purchase_date = 6 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string ipfs_hash = 7;
+  string provenance_type = 8;
+  string minted_tokens = 9 [(cosmos_proto.scalar) = "cosmos.Int"];
+  google.protobuf.Timestamp mint_timestamp = 10 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  string owner = 11 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string status = 12;
+}
+
+// Params defines the parameters for the energymint module
+message Params {
+  repeated string authorized_minters = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string min_certificate_mwh = 2 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  bool require_ipfs = 3;
+  repeated string accepted_provenance_types = 4;
+}
+
+// GenesisState defines the energymint module's genesis state
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  repeated Certificate certificates = 2 [(gogoproto.nullable) = false];
+  string total_minted_tokens = 3 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string total_backed_mwh = 4 [(cosmos_proto.scalar) = "cosmos.Dec"];
+}

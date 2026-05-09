@@ -1,0 +1,49 @@
+syntax = "proto3";
+package ftgchain.provenance.v1;
+
+option go_package = "github.com/VelaFlux28/ftg-chain/x/provenance/types";
+
+import "ftgchain/provenance/v1/types.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+
+// Query defines the provenance module's gRPC query service
+service Query {
+  // ProvenanceRecord returns a provenance record by ID
+  rpc ProvenanceRecord(QueryProvenanceRecordRequest) returns (QueryProvenanceRecordResponse) {
+    option (google.api.http).get = "/ftgchain/provenance/v1/record/{record_id}";
+  }
+
+  // ProvenanceByCertificate returns the provenance record for a certificate
+  rpc ProvenanceByCertificate(QueryProvenanceByCertificateRequest) returns (QueryProvenanceByCertificateResponse) {
+    option (google.api.http).get = "/ftgchain/provenance/v1/certificate/{certificate_id}";
+  }
+
+  // Params returns the current module parameters
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ftgchain/provenance/v1/params";
+  }
+}
+
+message QueryProvenanceRecordRequest {
+  string record_id = 1;
+}
+
+message QueryProvenanceRecordResponse {
+  ProvenanceRecord record = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProvenanceByCertificateRequest {
+  string certificate_id = 1;
+}
+
+message QueryProvenanceByCertificateResponse {
+  ProvenanceRecord record = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

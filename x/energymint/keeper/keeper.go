@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -19,12 +20,8 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 	storeKey storetypes.StoreKey
 	logger   log.Logger
-
-	// bankKeeper is used to mint tokens
 	bankKeeper types.BankKeeper
-
-	// authority is the governance module account address
-	authority string
+	authority  string
 }
 
 // NewKeeper creates a new energymint Keeper instance
@@ -50,7 +47,6 @@ func (k Keeper) Logger() log.Logger {
 }
 
 // MintFromCertificate validates a certificate and mints the corresponding FTG tokens
-// This is the core "Certificate to Token" mechanism
 func (k Keeper) MintFromCertificate(
 	ctx sdk.Context,
 	sender sdk.AccAddress,
@@ -106,7 +102,7 @@ func (k Keeper) MintFromCertificate(
 
 	// 8. Send tokens to destination wallet
 	if destinationWallet.Empty() {
-		destinationWallet = sender // Default to treasury
+		destinationWallet = sender
 	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, destinationWallet, coins)
 	if err != nil {
@@ -115,7 +111,7 @@ func (k Keeper) MintFromCertificate(
 
 	// 9. Record the certificate on-chain
 	cert.CertificateID = k.GenerateCertificateID(ctx)
-	cert.MintedTokens = math.NewIntFromBigInt(tokensToMint.BigInt())
+	cert.MintedTokens = tokensToMint
 	cert.MintTimestamp = time.Now().UTC()
 	cert.Owner = sender
 	cert.Status = "active"
@@ -176,10 +172,10 @@ func (k Keeper) HasCertificate(ctx sdk.Context, externalID string) bool {
 	return store.Has(types.CertificateKey(externalID))
 }
 
-// SetCertificate stores a certificate in the KV store
+// SetCertificate stores a certificate in the KV store using JSON encoding
 func (k Keeper) SetCertificate(ctx sdk.Context, cert types.Certificate) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&cert)
+	bz, _ := json.Marshal(&cert)
 	store.Set(types.CertificateKey(cert.ExternalID), bz)
 }
 
@@ -191,7 +187,7 @@ func (k Keeper) GetCertificate(ctx sdk.Context, externalID string) (types.Certif
 		return types.Certificate{}, false
 	}
 	var cert types.Certificate
-	k.cdc.MustUnmarshal(bz, &cert)
+	json.Unmarshal(bz, &cert)
 	return cert, true
 }
 
@@ -216,14 +212,14 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		return types.DefaultParams()
 	}
 	var params types.Params
-	k.cdc.MustUnmarshal(bz, &params)
+	json.Unmarshal(bz, &params)
 	return params
 }
 
 // SetParams sets the module parameters
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&params)
+	bz, _ := json.Marshal(&params)
 	store.Set([]byte(types.ParamsKey), bz)
 }
 
@@ -233,10 +229,11 @@ func (k Keeper) IncrementTotalMinted(ctx sdk.Context, amount math.Int) {
 	bz := store.Get([]byte(types.TotalMintedKey))
 	current := math.ZeroInt()
 	if bz != nil {
-		current = math.NewIntFromBigInt(sdk.NewIntFromBytes(bz).BigInt())
+		current.Unmarshal(bz)
 	}
 	newTotal := current.Add(amount)
-	store.Set([]byte(types.TotalMintedKey), newTotal.Marshal())
+	newBz, _ := newTotal.Marshal()
+	store.Set([]byte(types.TotalMintedKey), newBz)
 }
 
 // GetTotalMinted returns the total tokens minted
@@ -252,10 +249,10 @@ func (k Keeper) GetTotalMinted(ctx sdk.Context) math.Int {
 }
 
 // IncrementTotalBackedMwh adds to the total backed MWh counter
-func (k Keeper) IncrementTotalBackedMwh(ctx sdk.Context, amount sdk.Dec) {
+func (k Keeper) IncrementTotalBackedMwh(ctx sdk.Context, amount math.LegacyDec) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.TotalBackedMwhKey))
-	current := sdk.ZeroDec()
+	current := math.LegacyZeroDec()
 	if bz != nil {
 		current.Unmarshal(bz)
 	}
@@ -265,13 +262,13 @@ func (k Keeper) IncrementTotalBackedMwh(ctx sdk.Context, amount sdk.Dec) {
 }
 
 // GetTotalBackedMwh returns the total MWh backing all tokens
-func (k Keeper) GetTotalBackedMwh(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetTotalBackedMwh(ctx sdk.Context) math.LegacyDec {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.TotalBackedMwhKey))
 	if bz == nil {
-		return sdk.ZeroDec()
+		return math.LegacyZeroDec()
 	}
-	var total sdk.Dec
+	var total math.LegacyDec
 	total.Unmarshal(bz)
 	return total
 }

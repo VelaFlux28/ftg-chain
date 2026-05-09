@@ -1,0 +1,39 @@
+syntax = "proto3";
+package ftgchain.burn.v1;
+
+option go_package = "github.com/VelaFlux28/ftg-chain/x/burn/types";
+
+import "ftgchain/burn/v1/types.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+
+// Query defines the burn module's gRPC query service
+service Query {
+  // BurnStats returns cumulative burn statistics
+  rpc BurnStats(QueryBurnStatsRequest) returns (QueryBurnStatsResponse) {
+    option (google.api.http).get = "/ftgchain/burn/v1/stats";
+  }
+
+  // Params returns the current module parameters
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ftgchain/burn/v1/params";
+  }
+}
+
+message QueryBurnStatsRequest {}
+
+message QueryBurnStatsResponse {
+  string total_burned = 1 [(cosmos_proto.scalar) = "cosmos.Int"];
+  uint64 total_burn_events = 2;
+  string merchant_protocol_burned = 3 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string manual_burned = 4 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string redemption_burned = 5 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string total_energy_revenue_usd = 6 [(cosmos_proto.scalar) = "cosmos.Dec"];
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

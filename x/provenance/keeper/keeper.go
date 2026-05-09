@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -55,7 +56,6 @@ func (k Keeper) CreateProvenanceRecord(
 		"provenance_type", provenanceType,
 	)
 
-	// Validate parameters
 	params := k.GetParams(ctx)
 
 	if params.RequireDocumentHash && len(documents) == 0 {
@@ -66,24 +66,20 @@ func (k Keeper) CreateProvenanceRecord(
 		return nil, fmt.Errorf("too many documents: %d (max %d)", len(documents), params.MaxDocumentsPerRecord)
 	}
 
-	// Validate energy type
 	if !isAcceptedType(params.AcceptedEnergyTypes, energySource.Type) {
 		return nil, fmt.Errorf("energy type %s is not accepted", energySource.Type)
 	}
 
-	// Validate document types
 	for _, doc := range documents {
 		if !isAcceptedType(params.AcceptedDocumentTypes, doc.DocumentType) {
 			return nil, fmt.Errorf("document type %s is not accepted", doc.DocumentType)
 		}
 	}
 
-	// Check certificate hasn't already been recorded
 	if k.HasProvenanceForCertificate(ctx, certificateID) {
 		return nil, fmt.Errorf("provenance record already exists for certificate %s", certificateID)
 	}
 
-	// Create the record
 	record := types.ProvenanceRecord{
 		RecordID:        k.GenerateRecordID(ctx),
 		CertificateID:   certificateID,
@@ -96,7 +92,7 @@ func (k Keeper) CreateProvenanceRecord(
 		CreatedBy:       creator,
 		ChainOfCustody: []types.CustodyEvent{
 			{
-				From:      nil, // Genesis — no previous owner
+				From:      nil,
 				To:        creator,
 				Timestamp: time.Now().UTC(),
 				Reason:    "initial_mint",
@@ -104,13 +100,9 @@ func (k Keeper) CreateProvenanceRecord(
 		},
 	}
 
-	// Store the record
 	k.SetProvenanceRecord(ctx, record)
-
-	// Map certificate to provenance
 	k.SetCertToProvenance(ctx, certificateID, record.RecordID)
 
-	// Emit event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			"provenance_created",
@@ -134,14 +126,14 @@ func (k Keeper) GetProvenanceRecord(ctx sdk.Context, recordID string) (types.Pro
 		return types.ProvenanceRecord{}, false
 	}
 	var record types.ProvenanceRecord
-	k.cdc.MustUnmarshal(bz, &record)
+	json.Unmarshal(bz, &record)
 	return record, true
 }
 
-// SetProvenanceRecord stores a provenance record
+// SetProvenanceRecord stores a provenance record using JSON encoding
 func (k Keeper) SetProvenanceRecord(ctx sdk.Context, record types.ProvenanceRecord) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&record)
+	bz, _ := json.Marshal(&record)
 	store.Set(types.ProvenanceRecordKey(record.RecordID), bz)
 }
 

@@ -1,0 +1,62 @@
+syntax = "proto3";
+package ftgchain.energymint.v1;
+
+option go_package = "github.com/VelaFlux28/ftg-chain/x/energymint/types";
+
+import "ftgchain/energymint/v1/types.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+
+// Query defines the energymint module's gRPC query service
+service Query {
+  // Certificate returns a single certificate by external ID
+  rpc Certificate(QueryCertificateRequest) returns (QueryCertificateResponse) {
+    option (google.api.http).get = "/ftgchain/energymint/v1/certificate/{external_id}";
+  }
+
+  // TotalSupply returns the total minted supply and energy backing
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse) {
+    option (google.api.http).get = "/ftgchain/energymint/v1/supply";
+  }
+
+  // Params returns the current module parameters
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ftgchain/energymint/v1/params";
+  }
+
+  // IsAuthorizedMinter checks if an address is authorized to mint
+  rpc IsAuthorizedMinter(QueryIsAuthorizedMinterRequest) returns (QueryIsAuthorizedMinterResponse) {
+    option (google.api.http).get = "/ftgchain/energymint/v1/minter/{address}";
+  }
+}
+
+message QueryCertificateRequest {
+  string external_id = 1;
+}
+
+message QueryCertificateResponse {
+  Certificate certificate = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryTotalSupplyRequest {}
+
+message QueryTotalSupplyResponse {
+  string total_minted_uftg = 1 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string total_backed_mwh = 2 [(cosmos_proto.scalar) = "cosmos.Dec"];
+  string total_ftg_tokens = 3;
+}
+
+message QueryParamsRequest {}
+
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryIsAuthorizedMinterRequest {
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message QueryIsAuthorizedMinterResponse {
+  bool authorized = 1;
+}

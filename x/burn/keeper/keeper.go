@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -53,7 +54,6 @@ func (k Keeper) Logger() log.Logger {
 }
 
 // BurnTokens executes a token burn
-// This is the core deflationary mechanism — tokens are permanently destroyed
 func (k Keeper) BurnTokens(
 	ctx sdk.Context,
 	sender sdk.AccAddress,
@@ -67,12 +67,10 @@ func (k Keeper) BurnTokens(
 		"source", source,
 	)
 
-	// 1. Validate source type
 	if source != "merchant_protocol" && source != "manual" && source != "redemption" {
 		return nil, fmt.Errorf("invalid burn source: %s", source)
 	}
 
-	// 2. For merchant protocol burns, validate sender is authorized
 	if source == "merchant_protocol" {
 		if !k.IsAuthorizedMerchant(ctx, sender) {
 			return nil, fmt.Errorf("address %s is not authorized for merchant burns", sender.String())
@@ -83,34 +81,29 @@ func (k Keeper) BurnTokens(
 		}
 	}
 
-	// 3. Validate minimum burn amount
 	params := k.GetParams(ctx)
 	if amount.LT(params.MinBurnAmount) {
 		return nil, fmt.Errorf("burn amount (%s) below minimum (%s)",
 			amount.String(), params.MinBurnAmount.String())
 	}
 
-	// 4. Check sender has sufficient balance
 	balance := k.bankKeeper.GetBalance(ctx, sender, "uftg")
 	if balance.Amount.LT(amount) {
 		return nil, fmt.Errorf("insufficient balance: has %s, needs %s",
 			balance.Amount.String(), amount.String())
 	}
 
-	// 5. Send tokens from sender to module account
 	coins := sdk.NewCoins(sdk.NewCoin("uftg", amount))
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send coins to burn module: %w", err)
 	}
 
-	// 6. Burn the tokens (permanently destroy)
 	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
 	if err != nil {
 		return nil, fmt.Errorf("failed to burn coins: %w", err)
 	}
 
-	// 7. Record the burn event
 	burnEvent := types.BurnEvent{
 		BurnID:       k.GenerateBurnID(ctx),
 		Amount:       amount,
@@ -121,10 +114,8 @@ func (k Keeper) BurnTokens(
 	}
 	k.SetBurnEvent(ctx, burnEvent)
 
-	// 8. Update statistics
 	k.UpdateBurnStats(ctx, amount, source, merchantData)
 
-	// 9. Emit event
 	attrs := []sdk.Attribute{
 		sdk.NewAttribute("burn_id", burnEvent.BurnID),
 		sdk.NewAttribute("amount", amount.String()),
@@ -149,13 +140,11 @@ func (k Keeper) BurnTokens(
 }
 
 // MerchantProtocolBurn executes the Automatic Merchant Protocol
-// Energy revenue → Buy FTG on DEX → Burn to null address
-// This is the automated deflationary engine
 func (k Keeper) MerchantProtocolBurn(
 	ctx sdk.Context,
 	liquidityContract sdk.AccAddress,
-	energyRevenueUSD sdk.Dec,
-	dexPurchasePrice sdk.Dec,
+	energyRevenueUSD math.LegacyDec,
+	dexPurchasePrice math.LegacyDec,
 	tokensPurchased math.Int,
 	vaultID string,
 	gridOperator string,
@@ -182,10 +171,10 @@ func (k Keeper) AddAuthorizedMerchant(ctx sdk.Context, addr sdk.AccAddress) {
 	store.Set(types.AuthorizedMerchantKey(addr.String()), []byte{1})
 }
 
-// SetBurnEvent stores a burn event
+// SetBurnEvent stores a burn event using JSON encoding
 func (k Keeper) SetBurnEvent(ctx sdk.Context, event types.BurnEvent) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&event)
+	bz, _ := json.Marshal(&event)
 	store.Set(types.BurnEventKey(event.BurnID), bz)
 }
 
@@ -204,7 +193,6 @@ func (k Keeper) GenerateBurnID(ctx sdk.Context) string {
 
 // GetParams returns the current module parameters
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	// For now return defaults — will be stored in KV store
 	return types.DefaultParams()
 }
 
@@ -239,17 +227,17 @@ func (k Keeper) GetBurnStats(ctx sdk.Context) types.BurnStats {
 			MerchantProtocolBurned: math.ZeroInt(),
 			ManualBurned:           math.ZeroInt(),
 			RedemptionBurned:       math.ZeroInt(),
-			TotalEnergyRevenueUSD:  sdk.ZeroDec(),
+			TotalEnergyRevenueUSD:  math.LegacyZeroDec(),
 		}
 	}
 	var stats types.BurnStats
-	k.cdc.MustUnmarshal(bz, &stats)
+	json.Unmarshal(bz, &stats)
 	return stats
 }
 
 // SetBurnStats stores burn statistics
 func (k Keeper) SetBurnStats(ctx sdk.Context, stats types.BurnStats) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&stats)
+	bz, _ := json.Marshal(&stats)
 	store.Set([]byte(types.BurnStatsKey), bz)
 }

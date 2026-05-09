@@ -1,0 +1,17 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/VelaFlux28/ftg-chain
+    except:
+      - buf.build/cosmos/cosmos-sdk
+      - buf.build/cosmos/cosmos-proto
+      - buf.build/cosmos/gogo-proto
+      - buf.build/googleapis/googleapis
+plugins:
+  - name: gocosmos
+    out: ..
+    opt: plugins=grpc,Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
+  - name: grpc-gateway
+    out: ..
+    opt: logtostderr=true,allow_colon_final_segments=true

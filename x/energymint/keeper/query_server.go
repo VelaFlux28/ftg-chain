@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/VelaFlux28/ftg-chain/x/energymint/types"
@@ -44,7 +45,7 @@ func (q queryServer) TotalSupply(goCtx context.Context, req *types.QueryTotalSup
 	return &types.QueryTotalSupplyResponse{
 		TotalMintedUftg: totalMinted.String(),
 		TotalBackedMwh:  totalBackedMwh.String(),
-		TotalFtgTokens:  totalMinted.Quo(sdk.NewInt(types.MicroFTGPerToken)).String(),
+		TotalFtgTokens:  totalMinted.Quo(math.NewInt(types.MicroFTGPerToken)).String(),
 	}, nil
 }
 

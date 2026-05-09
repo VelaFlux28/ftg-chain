@@ -1,6 +1,7 @@
 package treasury
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -265,7 +266,7 @@ func (k Keeper) GetTreasuryOverview(ctx sdk.Context) map[string]string {
 
 func (k Keeper) SetCommitment(ctx sdk.Context, commitment Commitment) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&commitment)
+	bz, _ := json.Marshal(&commitment)
 	store.Set([]byte("Commitment/"+commitment.CommitmentID), bz)
 }
 
@@ -276,7 +277,7 @@ func (k Keeper) GetCommitment(ctx sdk.Context, commitmentID string) (Commitment,
 		return Commitment{}, false
 	}
 	var commitment Commitment
-	k.cdc.MustUnmarshal(bz, &commitment)
+	json.Unmarshal(bz, &commitment)
 	return commitment, true
 }
 
