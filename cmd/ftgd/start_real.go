@@ -90,9 +90,14 @@ func (n *FTGNode) Start(ctx context.Context) error {
 	exchangeRPC := NewExchangeRPC(n.HomeDir, n)
 	fmt.Println("  Exchange module loaded (order book + KYC/AML)")
 
+	// Initialize settlement bridge
+	settlementRPC := NewSettlementRPC(n.HomeDir, n)
+	fmt.Println("  Settlement bridge loaded (USDC escrow + deposits/withdrawals)")
+
 	// Initialize and start the enhanced RPC server
 	rpcServer := NewRPCServer(n, chainState)
 	rpcServer.ExchangeRPC = exchangeRPC
+	rpcServer.SettlementRPC = settlementRPC
 	go rpcServer.Start()
 
 	// Start block production loop

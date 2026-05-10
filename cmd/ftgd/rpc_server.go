@@ -11,10 +11,11 @@ import (
 
 // RPCServer handles all JSON-RPC endpoints for the FTG chain
 type RPCServer struct {
-	node        *FTGNode
-	chainState  *ChainState
-	httpServer  *http.Server
-	ExchangeRPC *ExchangeRPC
+	node          *FTGNode
+	chainState    *ChainState
+	httpServer    *http.Server
+	ExchangeRPC   *ExchangeRPC
+	SettlementRPC *SettlementRPC
 }
 
 // NewRPCServer creates the RPC server with all endpoints
@@ -56,6 +57,11 @@ func (s *RPCServer) Start() error {
 	// Exchange module endpoints
 	if s.ExchangeRPC != nil {
 		s.ExchangeRPC.RegisterRoutes(mux)
+	}
+
+	// Settlement bridge endpoints
+	if s.SettlementRPC != nil {
+		s.SettlementRPC.RegisterRoutes(mux)
 	}
 
 	listener, err := net.Listen("tcp", "0.0.0.0:26657")
