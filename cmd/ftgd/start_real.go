@@ -86,8 +86,13 @@ func (n *FTGNode) Start(ctx context.Context) error {
 	fmt.Printf("  Chain state loaded: %d certificates, supply %.0f FTG\n",
 		len(chainState.Certificates), float64(chainState.TotalSupply)/1_000_000)
 
+	// Initialize exchange module
+	exchangeRPC := NewExchangeRPC(n.HomeDir, n)
+	fmt.Println("  Exchange module loaded (order book + KYC/AML)")
+
 	// Initialize and start the enhanced RPC server
 	rpcServer := NewRPCServer(n, chainState)
+	rpcServer.ExchangeRPC = exchangeRPC
 	go rpcServer.Start()
 
 	// Start block production loop

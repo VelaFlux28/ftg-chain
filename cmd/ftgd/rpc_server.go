@@ -11,9 +11,10 @@ import (
 
 // RPCServer handles all JSON-RPC endpoints for the FTG chain
 type RPCServer struct {
-	node       *FTGNode
-	chainState *ChainState
-	httpServer *http.Server
+	node        *FTGNode
+	chainState  *ChainState
+	httpServer  *http.Server
+	ExchangeRPC *ExchangeRPC
 }
 
 // NewRPCServer creates the RPC server with all endpoints
@@ -51,6 +52,11 @@ func (s *RPCServer) Start() error {
 
 	// ABCI query endpoint
 	mux.HandleFunc("/abci_query", s.handleABCIQuery)
+
+	// Exchange module endpoints
+	if s.ExchangeRPC != nil {
+		s.ExchangeRPC.RegisterRoutes(mux)
+	}
 
 	listener, err := net.Listen("tcp", "0.0.0.0:26657")
 	if err != nil {
