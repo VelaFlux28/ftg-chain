@@ -28,10 +28,10 @@ US Patent 11,962,710 — Energy Block Chain.`,
 
 	rootCmd.AddCommand(
 		versionCmd(),
-		initCmd(),
-		startCmd(),
+		realInitCmd(),
+		realStartCmd(),
 		genesisCmd(),
-		keysCmd(),
+		realKeysCmd(),
 		mintCmd(),
 		burnCmd(),
 		treasuryCmd(),
@@ -57,50 +57,9 @@ func versionCmd() *cobra.Command {
 	}
 }
 
-// initCmd initializes a new node
-func initCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "init [moniker]",
-		Short: "Initialize a new FTG Energy node",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			moniker := args[0]
-			fmt.Printf("Initializing FTG Energy node: %s\n", moniker)
-			fmt.Printf("Chain ID: %s\n", chainID)
-			fmt.Printf("Home directory: ~/.ftgd\n")
-			fmt.Println("Genesis file will be created at ~/.ftgd/config/genesis.json")
-			fmt.Println("\nNode initialized successfully.")
-			fmt.Println("Next steps:")
-			fmt.Println("  1. Configure genesis with: ftgd genesis add-account")
-			fmt.Println("  2. Add genesis validator with: ftgd genesis gentx")
-			fmt.Println("  3. Start the node with: ftgd start")
-			return nil
-		},
-	}
-	return cmd
-}
+// initCmd is replaced by realInitCmd in init_real.go
 
-// startCmd starts the blockchain node
-func startCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "start",
-		Short: "Start the FTG Energy blockchain node",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Starting FTG Energy blockchain node...")
-			fmt.Printf("Chain ID: %s\n", chainID)
-			fmt.Println("Consensus: CometBFT")
-			fmt.Println("API: http://localhost:1317")
-			fmt.Println("gRPC: localhost:9090")
-			fmt.Println("RPC: http://localhost:26657")
-			fmt.Println("P2P: tcp://localhost:26656")
-			fmt.Println("\nNode is running. Press Ctrl+C to stop.")
-			// In production, this would start the actual CometBFT node
-			// For now, this is a placeholder that will be replaced with
-			// the full Cosmos SDK server startup
-			select {} // Block forever (placeholder)
-		},
-	}
-}
+// startCmd is replaced by realStartCmd in start_real.go
 
 // genesisCmd manages genesis file operations
 func genesisCmd() *cobra.Command {
@@ -149,51 +108,7 @@ func genesisCmd() *cobra.Command {
 	return cmd
 }
 
-// keysCmd manages cryptographic keys
-func keysCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "keys",
-		Short: "Key management commands",
-	}
-
-	cmd.AddCommand(
-		&cobra.Command{
-			Use:   "add [name]",
-			Short: "Create a new key pair",
-			Args:  cobra.ExactArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				fmt.Printf("Creating key: %s\n", args[0])
-				fmt.Println("⚠️  Store your mnemonic phrase securely!")
-				return nil
-			},
-		},
-		&cobra.Command{
-			Use:   "list",
-			Short: "List all keys",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				fmt.Println("Keys:")
-				fmt.Println("  treasury-minting    ftg1...")
-				fmt.Println("  treasury-committed  ftg1...")
-				fmt.Println("  treasury-liquidity  ftg1...")
-				fmt.Println("  validator           ftg1...")
-				return nil
-			},
-		},
-		&cobra.Command{
-			Use:   "show [name]",
-			Short: "Show key details",
-			Args:  cobra.ExactArgs(1),
-			RunE: func(cmd *cobra.Command, args []string) error {
-				fmt.Printf("Key: %s\n", args[0])
-				fmt.Println("Address: ftg1...")
-				fmt.Println("Public Key: ftgpub1...")
-				return nil
-			},
-		},
-	)
-
-	return cmd
-}
+// keysCmd is replaced by realKeysCmd in keys_real.go
 
 // mintCmd handles token minting operations
 func mintCmd() *cobra.Command {

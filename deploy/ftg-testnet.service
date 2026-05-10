@@ -1,0 +1,24 @@
+[Unit]
+Description=FTG Energy Blockchain Testnet Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/local/bin/ftgd start --home /opt/ftg-data
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65535
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ftg-testnet
+
+# Security hardening
+ProtectSystem=full
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
