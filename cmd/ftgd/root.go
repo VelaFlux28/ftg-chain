@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -289,11 +291,53 @@ func queryCmd() *cobra.Command {
 			Use:   "supply",
 			Short: "Query total token supply and backing",
 			RunE: func(cmd *cobra.Command, args []string) error {
+				genesisPath := "/opt/ftg-data/config/genesis.json"
+				data, err := os.ReadFile(genesisPath)
+				if err != nil {
+					fmt.Println("=== FTG Supply ===")
+					fmt.Println("Error reading genesis:", err)
+					return nil
+				}
+				var genesis map[string]interface{}
+				if err := json.Unmarshal(data, &genesis); err != nil {
+					fmt.Println("Error parsing genesis:", err)
+					return nil
+				}
+				appState := genesis["app_state"].(map[string]interface{})
+				em := appState["energymint"].(map[string]interface{})
+				totalMinted := em["total_minted"]
+				certs := em["certificates"].([]interface{})
+				// Calculate MWh from certificates
+				totalMwh := 0.0
+				for _, c := range certs {
+					cert := c.(map[string]interface{})
+					mwh := cert["mwh_quantity"]
+					switch v := mwh.(type) {
+					case string:
+						var mwhVal float64
+						fmt.Sscanf(v, "%f", &mwhVal)
+						totalMwh += mwhVal
+					case float64:
+						totalMwh += v
+					}
+				}
+				// Convert uftg to FTG
+				var totalUftg float64
+				switch v := totalMinted.(type) {
+				case string:
+					fmt.Sscanf(v, "%f", &totalUftg)
+				case float64:
+					totalUftg = v
+				}
+				totalFtg := totalUftg / 1000000.0
 				fmt.Println("=== FTG Supply ===")
-				fmt.Println("Total Supply: 0 FTG")
-				fmt.Println("Total Backed: 0 MWh")
+				fmt.Printf("Total Supply: %.0f FTG\n", totalFtg)
+				fmt.Printf("Total Backed: %.0f MWh\n", totalMwh)
 				fmt.Println("Backing Ratio: 100%")
 				fmt.Println("Price Anchor: $5.00/FTG")
+				fmt.Printf("Certificates: %d\n", len(certs))
+				minters := em["authorized_minters"].([]interface{})
+				fmt.Printf("Authorized Minters: %d\n", len(minters))
 				return nil
 			},
 		},
